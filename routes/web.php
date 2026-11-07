@@ -12,7 +12,14 @@ Route::redirect('/', '/dashboard');
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 Route::get('/dashboard/data', [DashboardController::class, 'data'])->name('dashboard.data');
 
+Route::resource('wisatawan', WisatawanController::class);
+/*
 Route::get('/wisatawan', [WisatawanController::class, 'index'])->name('wisatawan.index');
+Route::get('/wisatawan/tambah', [WisatawanController::class, 'create'])->name('wisatawan.tambah');
+Route::post('/wisatawan/store', [WisatawanController::class, 'store'])->name('wisatawan.store');
+Route::post('/wisatawan/destroy/{wisatawan}', [WisatawanController::class, 'destroy'])->name('wisatawan.destroy');
+*/
+
 
 Route::controller(PemantauanController::class)
     ->prefix('pemantauan')
