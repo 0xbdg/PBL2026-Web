@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use App\Models\WellnessSession;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -10,36 +9,42 @@ use Illuminate\Http\Request;
 
 class PemantauanController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $sesiAktif = WellnessSession::where('status_sesi', 'aktif')
+        $query = WellnessSession::where('status_sesi', 'aktif')
             ->with('latestLog')
             ->withCount('sensorLogs')
-            ->latest('tanggal_sesi')
-            ->get();
+            ->latest('tanggal_sesi');
 
-        return view('pemantauan.index', compact('sesiAktif'));
+        // 1. Filter berdasarkan Nama Wisatawan (jika diisi)
+        if ($request->filled('nama_wisatawan')) {
+            $query->where('nama_wisatawan', $request->nama_wisatawan);
+        }
+
+        // 2. Filter berdasarkan Lokasi Resort (jika diisi)
+        if ($request->filled('lokasi_resort')) {
+            $query->where('lokasi_resort', $request->lokasi_resort);
+        }
+
+        // 3. Filter berdasarkan Tanggal Sesi (jika diisi)
+        if ($request->filled('tanggal_sesi')) {
+            $query->whereDate('tanggal_sesi', $request->tanggal_sesi);
+        }
+
+        $sesiAktif = $query->get();
+
+        // Data untuk opsi dropdown pilihan
+        $daftarWisatawan = WellnessSession::select('nama_wisatawan')
+            ->distinct()
+            ->pluck('nama_wisatawan');
+
+        $daftarResort = WellnessSession::select('lokasi_resort')
+            ->distinct()
+            ->pluck('lokasi_resort');
+
+        return view('pemantauan.index', compact('sesiAktif', 'daftarWisatawan', 'daftarResort'));
     }
 
-    public function store(Request $request): RedirectResponse
-    {
-        $data = $request->validate([
-            'nama_wisatawan' => ['required', 'string', 'max:100'],
-            'lokasi_resort' => ['required', 'string', 'max:150'],
-            'tanggal_sesi' => ['required', 'date'],
-        ]);
-
-        $sesi = WellnessSession::create($data + [
-            'user_id' => auth()->id() ?? User::query()->value('id'),
-            'status_sesi' => 'aktif',
-        ]);
-
-        return redirect()
-            ->route('pemantauan.show', $sesi)
-            ->with('sukses', 'Sesi wellness untuk '.$sesi->nama_wisatawan.' berhasil dibuat.');
-    }
-
-    // Route Model Binding: {wellnessSession}
     public function show(WellnessSession $wellnessSession): View
     {
         return view('pemantauan.show', [
@@ -55,6 +60,7 @@ class PemantauanController extends Controller
 
         return redirect()
             ->route('pemantauan.index')
-            ->with('sukses', 'Sesi '.$wellnessSession->nama_wisatawan.' telah diselesaikan.');
+            ->with('sukses', 'Sesi ' . $wellnessSession->nama_wisatawan . ' telah diselesaikan.');
     }
 }
+

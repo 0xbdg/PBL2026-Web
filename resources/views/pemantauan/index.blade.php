@@ -3,43 +3,63 @@
 
     <div>
         <h1 class="text-2xl font-bold text-slate-800">Pemantauan Wellness</h1>
-        <p class="text-sm text-slate-500">Buat sesi relaksasi baru dan pantau sesi yang sedang berjalan.</p>
+        <p class="text-sm text-slate-500">Cari dan pantau sesi relaksasi wisatawan berdasarkan nama, lokasi resort, atau tanggal.</p>
     </div>
 
     <div class="grid gap-6 lg:grid-cols-3">
-        {{-- Form sesi baru --}}
-        <form action="{{ route('pemantauan.store') }}" method="POST"
-              class="space-y-4 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
-            @csrf
-            <h2 class="text-base font-bold text-slate-800">Mulai Sesi Baru</h2>
+        {{-- Form Pencarian / Filter Hybrid --}}
+        <form action="{{ route('pemantauan.index') }}" method="GET"
+              class="space-y-4 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 h-fit">
+            <h2 class="text-base font-bold text-slate-800">Cari & Filter Sesi</h2>
 
+            {{-- Filter Nama Wisatawan --}}
             <div>
                 <label for="nama_wisatawan" class="mb-1 block text-sm font-medium text-slate-600">Nama Wisatawan</label>
-                <input id="nama_wisatawan" name="nama_wisatawan" type="text" value="{{ old('nama_wisatawan') }}"
-                       class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-200">
-                @error('nama_wisatawan') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
+                <select id="nama_wisatawan" name="nama_wisatawan"
+                        class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-200">
+                    <option value="">Semua Wisatawan</option>
+                    @foreach ($daftarWisatawan as $nama)
+                        <option value="{{ $nama }}" {{ request('nama_wisatawan') == $nama ? 'selected' : '' }}>
+                            {{ $nama }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
 
+            {{-- Filter Lokasi Resort --}}
             <div>
                 <label for="lokasi_resort" class="mb-1 block text-sm font-medium text-slate-600">Lokasi Resort</label>
-                <input id="lokasi_resort" name="lokasi_resort" type="text" value="{{ old('lokasi_resort') }}"
-                       class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-200">
-                @error('lokasi_resort') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
+                <select id="lokasi_resort" name="lokasi_resort"
+                        class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-200">
+                    <option value="">Semua Lokasi</option>
+                    @foreach ($daftarResort as $lokasi)
+                        <option value="{{ $lokasi }}" {{ request('lokasi_resort') == $lokasi ? 'selected' : '' }}>
+                            {{ $lokasi }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
 
+            {{-- Filter Tanggal Sesi --}}
             <div>
                 <label for="tanggal_sesi" class="mb-1 block text-sm font-medium text-slate-600">Tanggal Sesi</label>
-                <input id="tanggal_sesi" name="tanggal_sesi" type="date" value="{{ old('tanggal_sesi', now()->toDateString()) }}"
-                       class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-200">
-                @error('tanggal_sesi') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
+                <input id="tanggal_sesi" name="tanggal_sesi" type="date" value="{{ request('tanggal_sesi') }}"
+                       class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-200">
             </div>
 
-            <button type="submit" class="w-full rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow hover:bg-emerald-700">
-                Mulai Pemantauan
-            </button>
+            <div class="flex items-center gap-2 pt-2">
+                <button type="submit" class="flex-1 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow hover:bg-emerald-700 text-center">
+                    Cari Sesi
+                </button>
+                @if(request()->filled('nama_wisatawan') || request()->filled('lokasi_resort') || request()->filled('tanggal_sesi'))
+                    <a href="{{ route('pemantauan.index') }}" class="rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-200 text-center">
+                        Reset
+                    </a>
+                @endif
+            </div>
         </form>
 
-        {{-- Sesi aktif --}}
+        {{-- Sesi aktif / hasil pencarian --}}
         <div class="space-y-4 lg:col-span-2">
             <h2 class="text-base font-bold text-slate-800">Sesi Aktif ({{ $sesiAktif->count() }})</h2>
 
@@ -75,7 +95,7 @@
                 </div>
             @empty
                 <div class="rounded-2xl bg-white p-10 text-center text-sm text-slate-400 shadow-sm ring-1 ring-slate-200">
-                    Belum ada sesi yang berjalan.
+                    Belum ada sesi yang berjalan atau data yang sesuai dengan pencarian.
                 </div>
             @endforelse
         </div>

@@ -26,7 +26,6 @@ Route::controller(PemantauanController::class)
     ->name('pemantauan.')
     ->group(function () {
         Route::get('/', 'index')->name('index');
-        Route::post('/', 'store')->name('store');
         Route::get('/{wellnessSession}', 'show')->name('show');            // Route Model Binding
         Route::patch('/{wellnessSession}/selesai', 'selesai')->name('selesai');
     });
