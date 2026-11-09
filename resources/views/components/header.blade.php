@@ -1,5 +1,7 @@
 @php
     $namaUser = auth()->user()?->name ?? 'Admin Wellness';
+    $emailUser = auth()->user()?->email ?? 'test@example.com';
+
     $inisial = strtoupper(mb_substr($namaUser, 0, 1));
 @endphp
 
@@ -37,7 +39,7 @@
                 </div>
                 <div class="hidden leading-tight text-left sm:block">
                     <p class="text-sm font-semibold text-slate-800">{{ $namaUser }}</p>
-                    <p class="text-xs text-slate-500">Administrator</p>
+                    <p class="text-xs text-slate-500">{{$emailUser}}</p>
                 </div>
                 <svg class="hidden h-4 w-4 text-slate-400 transition-transform duration-200 sm:block" :class="{ 'rotate-180': open }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m19 9-7 7-7-7"/>
@@ -56,7 +58,7 @@
                  class="absolute right-0 mt-2 w-48 rounded-2xl border border-slate-100 bg-white py-1.5 shadow-xl ring-1 ring-black/5 focus:outline-none z-50"
                  style="display: none;">
 
-                <form method="POST" action="">
+                <form method="POST" action="{{route('logout')}}">
                     @csrf
                     <button type="submit" class="flex w-full items-center gap-2.5 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
