@@ -11,7 +11,6 @@
 <x-layout>
     <x-slot:title>Beranda</x-slot:title>
 
-    {{-- Banner --}}
     <section class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-700 via-emerald-600 to-teal-500 p-8 text-white shadow-lg">
         <div class="pointer-events-none absolute -right-10 -top-16 h-56 w-56 rounded-full bg-white/10"></div>
         <div class="pointer-events-none absolute -bottom-20 right-24 h-48 w-48 rounded-full bg-white/10"></div>

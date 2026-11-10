@@ -28,7 +28,7 @@
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/>
             </svg>
-            Ubud, Bali - 28°C Cerah
+            <span id="city">-</span>,<span id="region">-</span>-<span id="temp">-°C</span> <span id="condition">Cerah</span>
         </div>
 
         {{-- Profil dengan Dropdown (Alpine.js) --}}

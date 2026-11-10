@@ -41,6 +41,36 @@
         };
         document.getElementById('sidebar-toggle')?.addEventListener('click', toggleSidebar);
         backdrop.addEventListener('click', toggleSidebar);
+        const url = "https://api.weatherapi.com/v1/forecast.json?key=478af3b381054c5298c04907261011&q=Ubud&days=3&aqi=no&alerts=yes";
+        async function fetchWeather() {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                const regionName = data.location.region;
+                const cityName = data.location.name;
+                let tempC = data.current.temp_c;
+                const conditionText = data.current.condition.text;
+
+                document.getElementById("region").textContent = regionName;
+                document.getElementById("city").textContent = cityName;
+                document.getElementById("temp").textContent = `${tempC} °C`;
+                document.getElementById("condition").textContent = conditionText;
+
+            } catch (error) {
+                console.error("Terjadi kesalahan saat mengambil data cuaca:", error);
+                document.getElementById("city").textContent = "Gagal memuat";
+                document.getElementById("condition").textContent = "Periksa koneksi atau API Key";
+            }
+        }
+
+        // Panggil fungsi saat halaman selesai dimuat
+        fetchWeather();
+        setInterval(fetchWeather, 10000);
     </script>
 
     @stack('scripts')
