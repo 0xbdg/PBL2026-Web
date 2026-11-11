@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('devices', function (Blueprint $table) {
             $table->id();
             $table->string('device_uid')->unique();
-            $table->string('name');
+            $table->string('device_name');
             $table->enum('status', ['active', 'inactive'])->default('inactive');
             $table->timestamps();
         });

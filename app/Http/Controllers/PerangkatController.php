@@ -3,17 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\SensorLog;
+use App\Models\Device;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\Request;
+
 
 class PerangkatController extends Controller
 {
     public function index(): View
     {
+
         $terakhir = SensorLog::latest('recorded_at')->first();
 
-        // Perangkat dianggap online bila mengirim data dalam 10 menit terakhir.
         $online = $terakhir && $terakhir->recorded_at->gt(now()->subMinutes(10));
-
+        /*
         $perangkat = [
             [
                 'nama' => 'ESP32 DevKit',
@@ -24,27 +27,48 @@ class PerangkatController extends Controller
             [
                 'nama' => 'MAX30102',
                 'fungsi' => 'Detak jantung (Heart Rate)',
-                'pembacaan' => $terakhir ? $terakhir->detak_jantung.' BPM' : '-',
+                'pembacaan' => $terakhir ? $terakhir->detak_jantung . ' BPM' : '-',
                 'protokol' => 'I2C',
             ],
             [
                 'nama' => 'MAX30205',
                 'fungsi' => 'Suhu kulit (Skin Temperature)',
-                'pembacaan' => $terakhir ? number_format($terakhir->suhu_kulit, 2).' °C' : '-',
+                'pembacaan' => $terakhir ? number_format($terakhir->suhu_kulit, 2) . ' °C' : '-',
                 'protokol' => 'I2C',
             ],
             [
                 'nama' => 'Grove-GSR',
                 'fungsi' => 'Respons resistansi kulit (EDA)',
-                'pembacaan' => $terakhir ? number_format($terakhir->gsr_eda, 2).' µS' : '-',
+                'pembacaan' => $terakhir ? number_format($terakhir->gsr_eda, 2) . ' µS' : '-',
                 'protokol' => 'Analog (ADC)',
             ],
         ];
+        */
+        $device = Device::latest()->paginate(5);
 
         return view('perangkat.index', [
-            'perangkat' => $perangkat,
+            'perangkat' => $device,
             'online' => $online,
-            'terakhir' => $terakhir,
+            //'terakhir' => $terakhir,
         ]);
     }
+    public function store(Request $request)
+    {
+        $validate = $request->validate([
+            'device_uid' => ['required', 'string', 'max:100'],
+            'device_name' => ['required', 'string', 'max:100']
+        ]);
+
+        $device = Device::create($validate);
+
+        return redirect()->route("perangkat.index", $device)->with("Sukses", $device->device_name . " berhasil ditambahkan");
+    }
+
+    public function destroy(Device $perangkat)
+    {
+        $perangkat->delete();
+
+        return redirect()->route("perangkat.index")->with("Sukses", $perangkat->device_name . " berhasil dihapus");
+    }
 }
+

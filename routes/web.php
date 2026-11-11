@@ -19,6 +19,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard/data', [DashboardController::class, 'data'])->name('dashboard.data');
 
     Route::resource('wisatawan', WisatawanController::class);
+    Route::resource('perangkat', PerangkatController::class);
 
     Route::controller(PemantauanController::class)
         ->prefix('pemantauan')
@@ -29,6 +30,5 @@ Route::middleware(['auth'])->group(function () {
             Route::patch('/{wellnessSession}/selesai', 'selesai')->name('selesai');
         });
 
-    Route::get('/perangkat', [PerangkatController::class, 'index'])->name('perangkat.index');
     Route::get('/analitik', [AnalitikController::class, 'index'])->name('analitik.index');
 });
