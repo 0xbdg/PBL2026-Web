@@ -82,10 +82,10 @@
         </div>
 
         @forelse($perangkat as $device)
-        <div class="mt-6 rounded-3xl border-2 border-slate-300 bg-white p-4 sm:p-6 shadow-sm">
+        <div id="card-{{ $device["id"] }}"class="mt-6 rounded-3xl border-2 border-slate-300 bg-white p-4 sm:p-6 shadow-sm">
             <!-- Header Section Device 1 + Tombol Delete yang memicu Modal Delete -->
             <div class="mb-6 flex items-center justify-between border-b border-slate-100 pb-4">
-                <h1 class="text-xl font-bold text-slate-800">{{$device["device_name"]}}</h1>
+                <h1 class="text-xl font-bold text-slate-800">{{ $device["device_name"] }} | {{ $device["device_uid"] }}</h1>
 
                 <!-- Tombol Hapus memicu openDeleteModal = true -->
                 <button type="button" @click="openDeleteModal = true" class="rounded-xl p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors" title="Hapus Perangkat">
@@ -105,7 +105,7 @@
                         </div>
                         <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset {{ $online ? 'bg-emerald-100 text-emerald-700 ring-emerald-200' : 'bg-rose-100 text-rose-700 ring-rose-200' }}">
                             <span class="h-1.5 w-1.5 rounded-full {{ $online ? 'bg-emerald-500' : 'bg-rose-500' }}"></span>
-                            {{ $online ? 'Online' : 'Offline' }}
+                            <span id="status-{{$device["device_uid"]}}">-</span>
                         </span>
                     </div>
 
@@ -119,7 +119,7 @@
                         </div>
                         <div class="flex justify-between">
                             <dt class="text-slate-500">Antarmuka</dt>
-                            <dd class="font-semibold text-slate-800">MQTT</dd>
+                            <dd class="font-semibold text-slate-800">MQTT | <span id="conn-status"></span></dd>
                         </div>
                     </dl>
                 </div>
@@ -260,4 +260,73 @@
         @endforelse
 
     </div>
+    @push('scripts')
+        <script>
+            const devices = @json($perangkat->items());
+
+    // Ganti dengan IP lokal komputer/server Mosquitto Anda
+    const brokerUrl = 'ws://192.168.1.56:9001';
+
+    const client = mqtt.connect(brokerUrl, {
+        clientId: 'laravel_dashboard_' + Math.random().toString(16).substr(2, 8)
+    });
+
+    client.on('connect', function () {
+        const connStatus = document.getElementById('conn-status');
+        if (connStatus) {
+            connStatus.innerText = 'Terhubung';
+            connStatus.style.color = 'green';
+        }
+
+        // Loop array perangkat di JS untuk otomatis subscribe ke topik masing-masing
+        devices.forEach(dev => {
+            // Mengambil properti topic (aman untuk array asosiatif maupun objek Eloquent)
+            const topic = dev.device_name ?? dev['device_name'];
+            client.subscribe(topic, function (err) {
+                if (!err) {
+                    console.log('Berhasil subscribe ke topik: ' + topic);
+                } else {
+                    console.error('Gagal subscribe ke: ' + topic, err);
+                }
+            });
+        });
+    });
+
+    client.on('error', function (error) {
+        console.error('Koneksi MQTT Gagal:', error);
+        const connStatus = document.getElementById('conn-status');
+        if (connStatus) {
+            connStatus.innerText = 'Gagal Terhubung';
+            connStatus.style.color = 'red';
+        }
+    });
+
+    client.on('message', function (topic, payload) {
+        const message = payload.toString();
+        console.log(`Pesan masuk [${topic}]: ${message}`);
+
+        // Cocokkan topik yang masuk dengan data perangkat di halaman ini
+        devices.forEach(dev => {
+            const devTopic = dev.device_name ?? dev['device_name'];
+            const devUid = dev.device_uid ?? dev['device_uid'];
+
+            if (topic === devTopic) {
+                const statusElement = document.getElementById(`status-${devUid}`);
+                if (statusElement) {
+                    statusElement.innerText = message;
+
+                    // Tambahkan pewarnaan dinamis berdasarkan status
+                    if (message.toLowerCase().includes('terhubung')) {
+                        statusElement.className = 'status-box text-emerald-600';
+                    } else if (message.toLowerCase().includes('terputus')) {
+                        statusElement.className = 'status-box text-rose-600';
+                    } else {
+                        statusElement.className = 'status-box text-slate-700';
+                    }
+                }
+            }
+        });
+    });
+        </script>
+    @endpush
 </x-layout>

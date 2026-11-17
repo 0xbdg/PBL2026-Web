@@ -71,4 +71,3 @@ class PerangkatController extends Controller
         return redirect()->route("perangkat.index")->with("Sukses", $perangkat->device_name . " berhasil dihapus");
     }
 }
-
