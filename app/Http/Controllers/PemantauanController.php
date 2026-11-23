@@ -56,11 +56,10 @@ class PemantauanController extends Controller
 
     public function selesai(WellnessSession $wellnessSession): RedirectResponse
     {
-        $wellnessSession->update(['status_sesi' => 'selesai']);
+        $wellnessSession->update(['status_sesi' => 'selesai', 'device_id'   => null]);
 
         return redirect()
             ->route('pemantauan.index')
             ->with('sukses', 'Sesi ' . $wellnessSession->nama_wisatawan . ' telah diselesaikan.');
     }
 }
-

@@ -15,7 +15,7 @@
 
     <div id="sidebar-backdrop" class="fixed inset-0 z-30 hidden bg-slate-900/50 lg:hidden"></div>
 
-    <div class="flex min-h-screen flex-col lg:pl-64">
+    <div class="flex min-h-screen flex-col transition-[padding] duration-300 ease-in-out lg:pl-3 lg:peer-hover:pl-64">
         <x-header />
 
         <main class="flex-1 space-y-6 p-4 sm:p-6 lg:p-8">

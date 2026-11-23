@@ -1,5 +1,5 @@
 <aside id="sidebar"
-       class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col bg-gradient-to-b from-emerald-900 via-emerald-800 to-teal-900 text-white shadow-xl transition-transform duration-200 lg:translate-x-0">
+       class="peer group fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col bg-gradient-to-b from-emerald-900 via-emerald-800 to-teal-900 text-white shadow-xl transition-transform duration-300 ease-in-out lg:-translate-x-[calc(100%-12px)] lg:hover:translate-x-0">
 
     {{-- Brand --}}
     <div class="flex items-center gap-3 px-6 py-6">

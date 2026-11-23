@@ -11,6 +11,8 @@ return new class extends Migration
         Schema::create('wellness_sessions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('device_id')->nullable()->after('user_id')
+                ->constrained('devices')->nullOnDelete();
             $table->string('nama_wisatawan');
             $table->string('lokasi_resort');
             $table->date('tanggal_sesi');
@@ -22,5 +24,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('wellness_sessions');
+        Schema::table('wellness_sessions', function (Blueprint $table) {
+            $table->dropConstrainedForeignId('device_id');
+        });
     }
 };
+

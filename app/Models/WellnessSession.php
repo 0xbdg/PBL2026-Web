@@ -14,6 +14,7 @@ class WellnessSession extends Model
 
     protected $fillable = [
         'user_id',
+        'device_id',
         'nama_wisatawan',
         'lokasi_resort',
         'tanggal_sesi',
@@ -29,6 +30,11 @@ class WellnessSession extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function device()
+    {
+        return $this->belongsTo(Device::class);
+    }
+
     public function sensorLogs(): HasMany
     {
         return $this->hasMany(SensorLog::class);
@@ -39,3 +45,4 @@ class WellnessSession extends Model
         return $this->hasOne(SensorLog::class)->latestOfMany('recorded_at');
     }
 }
+

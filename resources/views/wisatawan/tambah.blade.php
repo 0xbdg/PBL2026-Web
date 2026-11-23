@@ -65,8 +65,21 @@
 
         <!-- Catatan Opsional (Full Width) -->
         <div>
-          <label for="catatan" class="block text-xs font-semibold text-slate-600 mb-1">Catatan Tambahan <span class="text-slate-400 font-normal">(Opsional)</span></label>
-          <textarea id="catatan" name="catatan" rows="4" placeholder="Masukkan catatan awal untuk sesi ini jika ada..." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all"></textarea>
+            <label for="device" class="block text-xs font-semibold text-slate-600 mb-1">Device <span class="text-red-500">*</span></label>
+            <div class="relative">
+                <select id="device" name="device_id" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all appearance-none pr-9">
+                    <option value="" disabled {{ old('device_id') ? '' : 'selected' }}>Pilih Device</option>
+                    @foreach ($devices as $device)
+                        <option value="{{ $device->id }}"
+                            @disabled($device->sedang_dipakai)
+                            @selected(old('device_id') == $device->id)>
+                            {{ $device->device_name }}{{ $device->sedang_dipakai ? ' (sedang dipakai)' : '' }}
+                        </option>
+                    @endforeach
+                </select>
+                <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+            </div>
+            @error('device_id') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
         </div>
       </div>
 

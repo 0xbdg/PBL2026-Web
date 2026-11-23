@@ -13,9 +13,11 @@ return new class extends Migration
     {
         Schema::create('devices', function (Blueprint $table) {
             $table->id();
-            $table->string('device_uid')->unique();
             $table->string('device_name');
-            $table->enum('status', ['active', 'inactive'])->default('inactive');
+            $table->string('esp32_topic');
+            $table->string('heartrate_topic');
+            $table->string('gsr_topic');
+            $table->string('temp_topic');
             $table->timestamps();
         });
     }

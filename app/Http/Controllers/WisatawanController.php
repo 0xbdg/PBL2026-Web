@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\WellnessSession;
 use App\Models\User;
+use App\Models\Device;
 
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -34,7 +35,10 @@ class WisatawanController extends Controller
     }
     public function create()
     {
-        return view('wisatawan.tambah');
+        $devices = Device::withExists([
+            'sessions as sedang_dipakai' => fn($q) => $q->where('status_sesi', 'aktif'),
+        ])->orderBy('device_name')->get();
+        return view('wisatawan.tambah', compact('devices'));
     }
     public function store(Request $request)
     {
@@ -49,6 +53,58 @@ class WisatawanController extends Controller
             'status_sesi' => 'aktif',
         ]);
         return redirect()->route('wisatawan.index', $session)->with('sukses', 'Sesi wellness untuk ' . $session->nama_wisatawan . ' berhasil dibuat.');
+    }
+
+    public function edit(WellnessSession $wisatawan)
+    {
+        $devices = Device::withExists([
+            'sessions as sedang_dipakai' => fn($q) => $q
+                ->where('status_sesi', 'aktif')
+                ->where('id', '!=', $wisatawan->id),
+        ])->orderBy('device_name')->get();
+
+        return view('wisatawan.edit', [
+            'sesi'    => $wisatawan,
+            'devices' => $devices,
+        ]);
+    }
+
+    public function update(Request $request, WellnessSession $wisatawan)
+    {
+        $validate = $request->validate([
+            'nama_wisatawan' => ['required', 'string', 'max:100'],
+            'lokasi_resort'  => ['required', 'string', 'max:150'],
+            'tanggal_sesi'   => ['required', 'date'],
+            'device_id'      => [
+                'required',
+                'exists:devices,id',
+                function ($attribute, $value, $fail) use ($request, $wisatawan) {
+                    $dipakaiSesiLain = WellnessSession::where('device_id', $value)
+                        ->where('status_sesi', 'aktif')
+                        ->where('id', '!=', $wisatawan->id)
+                        ->exists();
+
+                    if ($request->status_sesi === 'aktif' && $dipakaiSesiLain) {
+                        $fail('Device ini sedang dipakai oleh sesi wisatawan lain.');
+                    }
+                },
+            ],
+        ]);
+
+        if ($wisatawan->status_sesi === 'aktif') {
+            $rules['device_id'] = [
+                'required',
+                'exists:devices,id',
+                Rule::unique('wellness_sessions', 'device_id')
+                    ->where('status_sesi', 'aktif')
+                    ->ignore($wisatawan->id),
+            ];
+        }
+
+        $wisatawan->update($validate);
+
+        return redirect()->route('wisatawan.index')
+            ->with('sukses', 'Sesi wellness untuk ' . $wisatawan->nama_wisatawan . ' berhasil diperbarui.');
     }
 
     public function destroy(WellnessSession $wisatawan)

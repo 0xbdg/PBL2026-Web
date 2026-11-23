@@ -4,42 +4,65 @@ namespace App\Http\Controllers;
 
 use App\Models\SensorLog;
 use App\Models\WellnessSession;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class DashboardController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $sesi = $this->sesiUtama();
+        $daftarSesi = $this->daftarSesiAktif();
+        $sesi = $this->pilihSesi($daftarSesi, $request->integer('sesi'));
 
         return view('dashboard', [
             'sesi' => $sesi,
+            'daftarSesi' => $daftarSesi,
             'ringkasan' => $this->ringkasan($sesi),
             'logTerbaru' => SensorLog::with('wellnessSession')
                 ->latest('recorded_at')
-                ->take(10)
+                ->take(5)
                 ->get(),
         ]);
     }
 
     /**
      * Endpoint JSON untuk polling real-time di dashboard.
+     * Menerima ?sesi={id} agar polling mengikuti sesi yang dipilih di dropdown.
      */
-    public function data(): JsonResponse
+    public function data(Request $request): JsonResponse
     {
-        return response()->json($this->ringkasan($this->sesiUtama()));
+        $sesi = $this->pilihSesi($this->daftarSesiAktif(), $request->integer('sesi'));
+
+        return response()->json($this->ringkasan($sesi));
     }
 
-    private function sesiUtama(): ?WellnessSession
+    /**
+     * Semua sesi berstatus "aktif" (untuk isi dropdown), terbaru di atas.
+     */
+    private function daftarSesiAktif(): Collection
     {
-        return WellnessSession::where('status_sesi', 'aktif')->latest('tanggal_sesi')->latest('id')->first()
-            ?? WellnessSession::latest('tanggal_sesi')->latest('id')->first();
+        return WellnessSession::where('status_sesi', 'aktif')
+            ->latest('tanggal_sesi')
+            ->latest('id')
+            ->get();
+    }
+
+    /**
+     * Pakai sesi yang dipilih jika masih aktif; jika tidak, ambil sesi aktif terbaru.
+     * Jika tidak ada sesi aktif sama sekali, hasilnya null (dashboard kosong).
+     */
+    private function pilihSesi(Collection $daftarSesi, int $idDipilih): ?WellnessSession
+    {
+        return ($idDipilih ? $daftarSesi->firstWhere('id', $idDipilih) : null)
+            ?? $daftarSesi->first();
     }
 
     private function ringkasan(?WellnessSession $sesi): array
     {
-        $query = SensorLog::where('wellness_session_id', $sesi?->id);
+        // Tanpa sesi aktif, jangan query log sama sekali (hindari "IS NULL" yang bisa cocok ke data lain).
+        $query = SensorLog::where('wellness_session_id', $sesi?->id ?? 0);
 
         $terbaru = (clone $query)->latest('recorded_at')->first();
         $tren = (clone $query)->latest('recorded_at')->take(30)->get()->reverse()->values();
@@ -59,7 +82,7 @@ class DashboardController extends Controller
             ],
             'tren' => [
                 'labels' => $tren->map(
-                    fn ($log) => $log->recorded_at instanceof \Carbon\CarbonInterface
+                    fn($log) => $log->recorded_at instanceof \Carbon\CarbonInterface
                         ? $log->recorded_at->format('H:i')
                         : '-'
                 )->all(),
@@ -70,3 +93,4 @@ class DashboardController extends Controller
         ];
     }
 }
+
