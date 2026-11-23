@@ -282,7 +282,6 @@
         </div>
         @endforelse
 
-        <!-- Modal Edit (satu untuk semua perangkat) -->
         <div x-show="editModal" x-transition.opacity x-cloak
              class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
             <div @click.away="editModal = false" x-transition

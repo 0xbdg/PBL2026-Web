@@ -72,6 +72,7 @@ class DashboardController extends Controller
             'rata_relaksasi' => round((float) $query->avg('tingkat_relaksasi'), 1),
             'rata_detak_jantung' => round((float) $query->avg('detak_jantung')),
             'rata_suhu_kulit' => round((float) $query->avg('suhu_kulit'), 1),
+            'rata_gsr_eda' => round((float) $query->avg('gsr_eda'), 2),
             'saat_ini' => [
                 'tingkat' => $terbaru?->tingkat_relaksasi ?? 0,
                 'status' => $terbaru?->status_klasifikasi ?? 'Belum ada data',
@@ -93,4 +94,3 @@ class DashboardController extends Controller
         ];
     }
 }
-

@@ -8,6 +8,7 @@ use App\Models\Device;
 
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class WisatawanController extends Controller
 {
@@ -57,6 +58,11 @@ class WisatawanController extends Controller
 
     public function edit(WellnessSession $wisatawan)
     {
+        if ($wisatawan->status_sesi === 'selesai') {
+            return redirect()->route('wisatawan.index')
+                ->with('error', 'Sesi yang sudah selesai tidak dapat diedit.');
+        }
+
         $devices = Device::withExists([
             'sessions as sedang_dipakai' => fn($q) => $q
                 ->where('status_sesi', 'aktif')
@@ -71,6 +77,11 @@ class WisatawanController extends Controller
 
     public function update(Request $request, WellnessSession $wisatawan)
     {
+        if ($wisatawan->status_sesi === 'selesai') {
+            return redirect()->route('wisatawan.index')
+                ->with('error', 'Sesi yang sudah selesai tidak dapat diedit.');
+        }
+
         $validate = $request->validate([
             'nama_wisatawan' => ['required', 'string', 'max:100'],
             'lokasi_resort'  => ['required', 'string', 'max:150'],
@@ -78,28 +89,13 @@ class WisatawanController extends Controller
             'device_id'      => [
                 'required',
                 'exists:devices,id',
-                function ($attribute, $value, $fail) use ($request, $wisatawan) {
-                    $dipakaiSesiLain = WellnessSession::where('device_id', $value)
-                        ->where('status_sesi', 'aktif')
-                        ->where('id', '!=', $wisatawan->id)
-                        ->exists();
-
-                    if ($request->status_sesi === 'aktif' && $dipakaiSesiLain) {
-                        $fail('Device ini sedang dipakai oleh sesi wisatawan lain.');
-                    }
-                },
-            ],
-        ]);
-
-        if ($wisatawan->status_sesi === 'aktif') {
-            $rules['device_id'] = [
-                'required',
-                'exists:devices,id',
                 Rule::unique('wellness_sessions', 'device_id')
                     ->where('status_sesi', 'aktif')
                     ->ignore($wisatawan->id),
-            ];
-        }
+            ],
+        ], [
+            'device_id.unique' => 'Device ini sedang dipakai oleh sesi wisatawan lain.',
+        ]);
 
         $wisatawan->update($validate);
 

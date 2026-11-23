@@ -175,7 +175,24 @@
                     </div>
                     <div>
                         <p class="text-xs font-medium text-slate-500">Rata-Rata Suhu Kulit</p>
-                        <p class="text-2xl font-bold text-slate-800"><span id="avg-suhu">{{ number_format($ringkasan['rata_suhu_kulit'], 1) }}</span>°C</p>
+                        <p class="text-2xl font-bold text-slate-800"><span id="avg-suhu">{{ number_format($ringkasan['rata_suhu_kulit'], 1) }}</span> <span>°C</span></p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 rounded-2xl bg-white p-4 text-slate-800 shadow-sm ring-1 ring-slate-200 sm:gap-4 sm:p-5">
+                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl sm:h-14 sm:w-14 bg-cyan-100 text-cyan-600">
+                       <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 11V5a2.5 2.5 0 0 1 5 0v6"/>
+                            <path d="M5 7.5h5"/>
+                            <path d="M14 11V5a2.5 2.5 0 0 1 5 0v6"/>
+                            <path d="M14 7.5h5"/>
+                            <path d="M7.5 11v5M16.5 11v5"/>
+                            <rect x="5" y="16" width="14" height="5" rx="1.2"/>
+                            <circle cx="12" cy="18.5" r=".6" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-slate-500">Rata-Rata Resistansi Kulit</p>
+                        <p class="text-2xl font-bold text-slate-800"><span id="avg-gsr">{{ number_format($ringkasan['rata_gsr_eda'], 1) }} <span>µS</span></p>
                     </div>
                 </div>
             </div>
