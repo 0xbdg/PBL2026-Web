@@ -1,4 +1,11 @@
 <x-layout>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  .resort-pin { width: 22px; height: 22px; border-radius: 9999px 9999px 9999px 0; transform: rotate(-45deg); border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.35); background: #64748b; transition: background .15s; }
+  .resort-pin.active { background: #059669; }
+  .resort-pin-wrap { display: flex; align-items: center; justify-content: center; }
+</style>
+
 <div class="w-full p-4 sm:p-6 lg:p-8 space-y-6">
 
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -17,7 +24,7 @@
       </a>
     </div>
 
-    <form method="POST" action="{{ route('wisatawan.update', $sesi) }}" class="w-full bg-white rounded-2xl p-6 border border-slate-100 shadow-sm space-y-5">
+    <form id="editForm" method="POST" action="{{ route('wisatawan.update', $sesi) }}" class="w-full bg-white rounded-2xl p-6 border border-slate-100 shadow-sm space-y-5">
       @csrf
       @method('PUT')
 
@@ -36,49 +43,49 @@
           @error('nama_wisatawan') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <!-- Resort -->
-          <div>
-            <label for="resort" class="block text-xs font-semibold text-slate-600 mb-1">Lokasi Resort <span class="text-red-500">*</span></label>
-            <div class="relative">
-              <select id="resort" name="lokasi_resort" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all appearance-none pr-9">
-                @foreach (['Ubud Hanging Gardens', 'Tegallalang Retreat', 'Sayan Jungle Resort', 'Kintamani Spa Haven', 'Ubud'] as $resort)
-                  <option value="{{ $resort }}" @selected(old('lokasi_resort', $sesi->lokasi_resort) === $resort)>{{ $resort }}</option>
-                @endforeach
-              </select>
-              <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-            </div>
-            @error('lokasi_resort') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
-          </div>
+        <!-- Lokasi Resort (Peta Leaflet) -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Lokasi Spa <span class="text-red-500">*</span></label>
 
-          <!-- Tanggal -->
-          <div>
-            <label for="tanggal" class="block text-xs font-semibold text-slate-600 mb-1">Tanggal Sesi <span class="text-red-500">*</span></label>
-            <input type="date" id="tanggal" name="tanggal_sesi" required
-                   value="{{ old('tanggal_sesi', $sesi->tanggal_sesi->format('Y-m-d')) }}"
-                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all">
-            @error('tanggal_sesi') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
+          <input type="hidden" id="lokasi_resort" name="lokasi_resort" value="{{ old('lokasi_resort', $sesi->lokasi_resort) }}">
+
+          <div id="resortMap" class="w-full h-80 rounded-xl border border-slate-200 z-0"></div>
+
+          <div id="resortSelected" class="mt-2 flex items-center gap-2 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-500">
+            <i data-lucide="map-pin" class="w-4 h-4 text-slate-400"></i>
+            <span id="resortSelectedText">Klik pin pada peta untuk memilih lokasi resort</span>
           </div>
+          <p id="resortError" class="mt-1 text-xs text-rose-600 hidden">Silakan pilih lokasi resort pada peta.</p>
+          @error('lokasi_resort') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
+        </div>
+
+        <!-- Tanggal -->
+        <div>
+          <label for="tanggal" class="block text-xs font-semibold text-slate-600 mb-1">Tanggal Sesi <span class="text-red-500">*</span></label>
+          <input type="date" id="tanggal" name="tanggal_sesi" required
+                 value="{{ old('tanggal_sesi', $sesi->tanggal_sesi->format('Y-m-d')) }}"
+                 class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all">
+          @error('tanggal_sesi') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
         </div>
 
         <!-- Device -->
-<div>
-  <label for="device" class="block text-xs font-semibold text-slate-600 mb-1">Device <span class="text-red-500">*</span></label>
-  <div class="relative">
-    <select id="device" name="device_id" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all appearance-none pr-9">
-      <option value="" disabled {{ old('device_id', $sesi->device_id) ? '' : 'selected' }}>Pilih Device</option>
-      @foreach ($devices as $device)
-        <option value="{{ $device->id }}"
-                @disabled($device->sedang_dipakai)
-                @selected(old('device_id', $sesi->device_id) == $device->id)>
-          {{ $device->device_name }}{{ $device->sedang_dipakai ? ' (sedang dipakai)' : '' }}
-        </option>
-      @endforeach
-    </select>
-    <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-  </div>
-  @error('device_id') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
-</div>
+        <div>
+          <label for="device" class="block text-xs font-semibold text-slate-600 mb-1">Device <span class="text-red-500">*</span></label>
+          <div class="relative">
+            <select id="device" name="device_id" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white transition-all appearance-none pr-9">
+              <option value="" disabled {{ old('device_id', $sesi->device_id) ? '' : 'selected' }}>Pilih Device</option>
+              @foreach ($devices as $device)
+                <option value="{{ $device->id }}"
+                        @disabled($device->sedang_dipakai)
+                        @selected(old('device_id', $sesi->device_id) == $device->id)>
+                  {{ $device->device_name }}{{ $device->sedang_dipakai ? ' (sedang dipakai)' : '' }}
+                </option>
+              @endforeach
+            </select>
+            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+          </div>
+          @error('device_id') <p class="mt-1 text-xs text-rose-600">{{ $message }}</p> @enderror
+        </div>
       </div>
 
       <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
@@ -91,4 +98,77 @@
       </div>
     </form>
   </div>
+
+  @push('scripts')
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const resorts = [
+          { name: 'Ubud Hanging Gardens', lat: -8.4010, lng: 115.2390 },
+          { name: 'Tegallalang Retreat',  lat: -8.4310, lng: 115.2790 },
+          { name: 'Sayan Jungle Resort',  lat: -8.5030, lng: 115.2450 },
+          { name: 'Kintamani Spa Haven',  lat: -8.2450, lng: 115.3500 },
+          { name: 'Ubud',                 lat: -8.5069, lng: 115.2625 },
+        ];
+
+        const input   = document.getElementById('lokasi_resort');
+        const textEl  = document.getElementById('resortSelectedText');
+        const errorEl = document.getElementById('resortError');
+        const selBox  = document.getElementById('resortSelected');
+
+        const map = L.map('resortMap', { scrollWheelZoom: false }).setView([-8.45, 115.27], 11);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        const markers = {};
+
+        function pinIcon(active) {
+          return L.divIcon({
+            className: 'resort-pin-wrap',
+            html: '<div class="resort-pin' + (active ? ' active' : '') + '"></div>',
+            iconSize: [26, 26],
+            iconAnchor: [13, 26],
+            tooltipAnchor: [0, -26]
+          });
+        }
+
+        function select(name) {
+          input.value = name;
+          textEl.textContent = name;
+          selBox.classList.remove('text-slate-500');
+          selBox.classList.add('text-slate-800', 'font-semibold');
+          errorEl.classList.add('hidden');
+          Object.keys(markers).forEach(function (n) {
+            markers[n].setIcon(pinIcon(n === name));
+          });
+        }
+
+        resorts.forEach(function (r) {
+          const m = L.marker([r.lat, r.lng], { icon: pinIcon(false), title: r.name }).addTo(map);
+          m.bindTooltip(r.name, { direction: 'top' });
+          m.on('click', function () { select(r.name); });
+          markers[r.name] = m;
+        });
+
+        map.fitBounds(L.featureGroup(Object.values(markers)).getBounds().pad(0.2));
+
+        // Pilihan awal: dari old input atau data sesi yang sedang diedit
+        if (input.value && markers[input.value]) {
+          select(input.value);
+        }
+
+        document.getElementById('editForm').addEventListener('submit', function (e) {
+          if (!input.value) {
+            e.preventDefault();
+            errorEl.classList.remove('hidden');
+            document.getElementById('resortMap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        });
+
+        if (window.lucide) lucide.createIcons();
+      });
+    </script>
+  @endpush
 </x-layout>

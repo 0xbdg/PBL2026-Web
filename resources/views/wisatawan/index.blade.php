@@ -23,7 +23,7 @@
                     <tr>
                         <th class="px-6 py-3 font-semibold">#</th>
                         <th class="px-6 py-3 font-semibold">Wisatawan</th>
-                        <th class="px-6 py-3 font-semibold">Lokasi Resort</th>
+                        <th class="px-6 py-3 font-semibold">Lokasi Spa</th>
                         <th class="px-6 py-3 font-semibold">Tanggal Sesi</th>
                         <th class="px-6 py-3 font-semibold">Perangkat</th>
                         <th class="px-6 py-3 font-semibold">Klasifikasi Terakhir</th>

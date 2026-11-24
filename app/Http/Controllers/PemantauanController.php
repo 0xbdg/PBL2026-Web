@@ -51,6 +51,13 @@ class PemantauanController extends Controller
             'sesi' => $wellnessSession,
             'terbaru' => $wellnessSession->latestLog,
             'logs' => $wellnessSession->sensorLogs()->latest('recorded_at')->paginate(15),
+            // 30 pembacaan terakhir (urut lama -> baru) untuk line chart, tidak terpengaruh paginasi tabel
+            'grafik' => $wellnessSession->sensorLogs()
+                ->latest('recorded_at')
+                ->take(30)
+                ->get()
+                ->reverse()
+                ->values(),
         ]);
     }
 
