@@ -38,7 +38,7 @@
                             <td class="whitespace-nowrap px-6 py-3 text-slate-600">true</td>
                             <td class="px-6 py-3 text-right">
                                 <div class="flex items-center justify-end gap-3">
-                                    <a href="{{ route('wisatawan.edit', $sesi) }}" class="inline-flex items-center gap-1 font-medium text-emerald-600 hover:text-emerald-800 transition-colors">
+                                    <a href="{{ route('user.edit', $sesi) }}" class="inline-flex items-center gap-1 font-medium text-emerald-600 hover:text-emerald-800 transition-colors">
                                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                         </svg>
@@ -77,7 +77,7 @@
                                                         Batal
                                                     </button>
 
-                                                    <form action="{{route('wisatawan.destroy', $sesi)}}" method="POST" class="w-full">
+                                                    <form action="{{route('user.destroy', $sesi)}}" method="POST" class="w-full">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-semibold shadow-sm shadow-red-200 transition-all">

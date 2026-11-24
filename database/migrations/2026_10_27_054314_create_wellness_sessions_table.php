@@ -10,7 +10,6 @@ return new class extends Migration
     {
         Schema::create('wellness_sessions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('device_id')->nullable()->after('user_id')
                 ->constrained('devices')->nullOnDelete();
             $table->string('nama_wisatawan');
@@ -29,4 +28,3 @@ return new class extends Migration
         });
     }
 };
-

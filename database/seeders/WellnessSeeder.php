@@ -11,19 +11,7 @@ class WellnessSeeder extends Seeder
 {
     public function run(): void
     {
-        $admin = User::create([
-            'name' => 'Admin Wellness',
-            'email' => 'admin@balisense.test',
-            'password' => 'password',
-            'is_admin' => true,
-        ]);
 
-        User::create([
-            'name' => 'Petugas Resort',
-            'email' => 'petugas@balisense.test',
-            'password' => 'password',
-            'is_admin' => false,
-        ]);
 
         $wisatawan = [
             ['Emma Johnson', 'Ubud Hanging Gardens'],
@@ -39,7 +27,6 @@ class WellnessSeeder extends Seeder
             $total = $aktif ? 24 : 36;
 
             $sesi = WellnessSession::create([
-                'user_id' => $admin->id,
                 'nama_wisatawan' => $nama,
                 'lokasi_resort' => $resort,
                 'tanggal_sesi' => now()->subDays($aktif ? 0 : $i)->toDateString(),
@@ -68,3 +55,4 @@ class WellnessSeeder extends Seeder
         }
     }
 }
+

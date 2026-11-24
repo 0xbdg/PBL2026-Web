@@ -13,7 +13,6 @@ class WellnessSession extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
         'device_id',
         'nama_wisatawan',
         'lokasi_resort',
@@ -24,11 +23,6 @@ class WellnessSession extends Model
     protected $casts = [
         'tanggal_sesi' => 'date',
     ];
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
 
     public function device()
     {
@@ -45,4 +39,3 @@ class WellnessSession extends Model
         return $this->hasOne(SensorLog::class)->latestOfMany('recorded_at');
     }
 }
-

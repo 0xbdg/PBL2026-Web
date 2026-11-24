@@ -47,12 +47,10 @@ class WisatawanController extends Controller
             'nama_wisatawan' => ['required', 'string', 'max:100'],
             'lokasi_resort' => ['required', 'string', 'max:150'],
             'tanggal_sesi' => ['required', 'date'],
-        ]);
-
-        $session = WellnessSession::create($validate + [
-            'user_id' => auth()->id() ?? User::query()->value('id'),
             'status_sesi' => 'aktif',
         ]);
+
+        $session = WellnessSession::create($validate);
         return redirect()->route('wisatawan.index', $session)->with('sukses', 'Sesi wellness untuk ' . $session->nama_wisatawan . ' berhasil dibuat.');
     }
 

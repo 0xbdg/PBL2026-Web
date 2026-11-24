@@ -45,7 +45,7 @@
 
         <!-- Lokasi Resort (Peta Leaflet) -->
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">Lokasi Spa <span class="text-red-500">*</span></label>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Lokasi Resort <span class="text-red-500">*</span></label>
 
           <input type="hidden" id="lokasi_resort" name="lokasi_resort" value="{{ old('lokasi_resort') }}">
 
@@ -119,7 +119,15 @@
         const errorEl  = document.getElementById('resortError');
         const selBox   = document.getElementById('resortSelected');
 
-        const map = L.map('resortMap', { scrollWheelZoom: false }).setView([-8.45, 115.27], 11);
+        // Batasi peta hanya untuk pulau Bali
+        const baliBounds = L.latLngBounds([-8.95, 114.35], [-7.95, 115.75]);
+
+        const map = L.map('resortMap', {
+          scrollWheelZoom: false,
+          maxBounds: baliBounds,
+          maxBoundsViscosity: 1.0,
+          minZoom: 9
+        }).setView([-8.45, 115.27], 11);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           maxZoom: 19,
           attribution: '&copy; OpenStreetMap contributors'
@@ -176,4 +184,3 @@
     </script>
   @endpush
 </x-layout>
-

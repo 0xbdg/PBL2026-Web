@@ -22,7 +22,7 @@ class DashboardController extends Controller
             'ringkasan' => $this->ringkasan($sesi),
             'logTerbaru' => SensorLog::with('wellnessSession')
                 ->latest('recorded_at')
-                ->take(5)
+                ->take(6)
                 ->get(),
         ]);
     }
