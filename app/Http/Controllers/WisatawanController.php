@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\WellnessSession;
 use App\Models\User;
 use App\Models\Device;
+use App\Models\SpaLocation;
 
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
@@ -39,7 +40,11 @@ class WisatawanController extends Controller
         $devices = Device::withExists([
             'sessions as sedang_dipakai' => fn($q) => $q->where('status_sesi', 'aktif'),
         ])->orderBy('device_name')->get();
-        return view('wisatawan.tambah', compact('devices'));
+        // Opsi 2: satu baris, tanpa compact
+        return view('wisatawan.create', [
+            'devices'      => $devices,
+            'spaLocations' => SpaLocation::orderBy('spa_name')->get(),
+        ]);
     }
     public function store(Request $request)
     {
@@ -70,6 +75,7 @@ class WisatawanController extends Controller
         return view('wisatawan.edit', [
             'sesi'    => $wisatawan,
             'devices' => $devices,
+            'spaLocations' => SpaLocation::orderBy('spa_name')->get(),
         ]);
     }
 

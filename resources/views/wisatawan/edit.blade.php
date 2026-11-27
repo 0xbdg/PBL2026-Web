@@ -103,14 +103,13 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
       document.addEventListener('DOMContentLoaded', function () {
-        // Koordinat perkiraan, samakan dengan halaman tambah sesi
-        const resorts = [
-          { name: 'Ubud Hanging Gardens', lat: -8.4010, lng: 115.2390 },
-          { name: 'Tegallalang Retreat',  lat: -8.4310, lng: 115.2790 },
-          { name: 'Sayan Jungle Resort',  lat: -8.5030, lng: 115.2450 },
-          { name: 'Kintamani Spa Haven',  lat: -8.2450, lng: 115.3500 },
-          { name: 'Ubud',                 lat: -8.5069, lng: 115.2625 },
-        ];
+        // Data lokasi dari tabel spa_locations (dikirim controller sebagai $spaLocations)
+        const resorts = {{ Js::from($spaLocations->map(fn ($s) => [
+          'name'    => $s->spa_name,
+          'address' => $s->address,
+          'lat'     => (float) $s->latitude,
+          'lng'     => (float) $s->longitude,
+        ])->values()) }};
 
         const input   = document.getElementById('lokasi_resort');
         const textEl  = document.getElementById('resortSelectedText');
@@ -156,12 +155,24 @@
 
         resorts.forEach(function (r) {
           const m = L.marker([r.lat, r.lng], { icon: pinIcon(false), title: r.name }).addTo(map);
-          m.bindTooltip(r.name, { direction: 'top' });
+          const tip = document.createElement('div');
+          const tipName = document.createElement('strong');
+          tipName.textContent = r.name;
+          tip.appendChild(tipName);
+          if (r.address) {
+            tip.appendChild(document.createElement('br'));
+            tip.appendChild(document.createTextNode(r.address));
+          }
+          m.bindTooltip(tip, { direction: 'top' });
           m.on('click', function () { select(r.name); });
           markers[r.name] = m;
         });
 
-        map.fitBounds(L.featureGroup(Object.values(markers)).getBounds().pad(0.2));
+        if (resorts.length) {
+          map.fitBounds(L.featureGroup(Object.values(markers)).getBounds().pad(0.2), { maxZoom: 14 });
+        } else {
+          textEl.textContent = 'Belum ada data lokasi spa.';
+        }
 
         // Pilihan awal: dari old input atau data sesi yang sedang diedit
         if (input.value && markers[input.value]) {
